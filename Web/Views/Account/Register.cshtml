@@ -1,0 +1,65 @@
+@model RegisterModel
+@{
+    ViewData["Title"] = "Create an account";
+}
+
+<div class="auth-card card shadow-sm">
+    <div class="card-body p-4 p-md-5">
+        <h1 class="h3 mb-1">Create an account</h1>
+        <p class="text-muted mb-4">Members can write in the movie chats and talk with other fans.</p>
+
+        <form asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+            <div class="row g-3 mb-3">
+                <div class="col-sm-6">
+                    <label asp-for="FirstName" class="form-label"></label>
+                    <input asp-for="FirstName" class="form-control" autocomplete="given-name" autofocus />
+                    <span asp-validation-for="FirstName"></span>
+                </div>
+                <div class="col-sm-6">
+                    <label asp-for="LastName" class="form-label"></label>
+                    <input asp-for="LastName" class="form-control" autocomplete="family-name" />
+                    <span asp-validation-for="LastName"></span>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="DateOfBirth" class="form-label"></label>
+                <input asp-for="DateOfBirth" type="date" class="form-control" autocomplete="bday"
+                       min="1900-01-01" max="@DateTime.UtcNow.ToString("yyyy-MM-dd")" />
+                <div class="form-text">Optional.</div>
+                <span asp-validation-for="DateOfBirth"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="DisplayName" class="form-label"></label>
+                <input asp-for="DisplayName" class="form-control" autocomplete="nickname" />
+                <div class="form-text">Shown next to your messages in movie chats.</div>
+                <span asp-validation-for="DisplayName"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="email" />
+                <span asp-validation-for="Email"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                <div class="form-text">At least 6 characters, with an uppercase letter, a lowercase letter, a digit and a symbol.</div>
+                <span asp-validation-for="Password"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="ConfirmPassword" class="form-label"></label>
+                <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="ConfirmPassword"></span>
+            </div>
+            <button type="submit" class="btn btn-dark w-100">Create account</button>
+        </form>
+
+        <p class="text-muted text-center mt-4 mb-0">
+            Already have an account? <a asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]">Log in</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

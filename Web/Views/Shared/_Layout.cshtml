@@ -1,46 +1,104 @@
-﻿<!DOCTYPE html>
+@{
+    var currentController = ViewContext.RouteData.Values["controller"] as string;
+    var currentAction = ViewContext.RouteData.Values["action"] as string;
+
+    bool IsCurrent(string controller, string? action = null) =>
+        string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
+        && (action is null || string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase));
+
+    string NavButtonClass(bool isCurrent) => isCurrent ? "btn btn-dark" : "btn btn-outline-dark";
+
+    var isSignedIn = User.Identity?.IsAuthenticated == true;
+    var isAdmin = User.IsInRole(AppRoles.Admin);
+    var displayName = User.FindFirstValue(AppClaimTypes.DisplayName) ?? User.Identity?.Name;
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Web</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Web.styles.css" asp-append-version="true" />
+    <title>@ViewData["Title"] - Cinema 101</title>
+    <link rel="stylesheet" href="/css/bundle.css" />
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+<body class="d-flex flex-column min-vh-100">
+    <header class="sticky-top">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+            <div class="container">
+                <a class="navbar-brand app-brand" asp-controller="Home" asp-action="Index">
+                    <span class="app-brand-mark" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" focusable="false">
+                            <path d="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Zm1 2v2h2V6H5Zm12 0v2h2V6h-2ZM5 11v2h2v-2H5Zm12 0v2h2v-2h-2ZM5 16v2h2v-2H5Zm12 0v2h2v-2h-2ZM9 6v12h6V6H9Z" />
+                        </svg>
+                    </span>
+                    Cinema 101
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav"
+                        aria-controls="main-nav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                <div class="collapse navbar-collapse" id="main-nav">
+                    <ul class="navbar-nav app-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="@NavButtonClass(IsCurrent("Home", "Index"))" aria-current="@(IsCurrent("Home", "Index") ? "page" : null)"
+                               asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="@NavButtonClass(IsCurrent("Movies"))" aria-current="@(IsCurrent("Movies") ? "page" : null)"
+                               asp-controller="Movies" asp-action="Index">Movies</a>
                         </li>
+                        @if (isAdmin)
+                        {
+                            <li class="nav-item">
+                                <a class="@NavButtonClass(IsCurrent("Actors"))" aria-current="@(IsCurrent("Actors") ? "page" : null)"
+                                   asp-controller="Actors" asp-action="Index">Actors</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="@NavButtonClass(IsCurrent("MovieActors"))" aria-current="@(IsCurrent("MovieActors") ? "page" : null)"
+                                   asp-controller="MovieActors" asp-action="Index">Cast &amp; Roles</a>
+                            </li>
+                        }
                     </ul>
+                    <div class="app-account">
+                        @if (isSignedIn)
+                        {
+                            <span class="app-user">
+                                <span class="app-user-name">@displayName</span>
+                                <span class="badge @(isAdmin ? "bg-dark" : "bg-light text-dark border")">@(isAdmin ? AppRoles.Admin : AppRoles.Member)</span>
+                            </span>
+                            <form asp-controller="Account" asp-action="Logout" method="post">
+                                <button type="submit" class="btn btn-outline-secondary">Log out</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a class="@NavButtonClass(IsCurrent("Account", "Login"))" aria-current="@(IsCurrent("Account", "Login") ? "page" : null)"
+                               asp-controller="Account" asp-action="Login">Log in</a>
+                            <a class="btn btn-warning fw-bold" asp-controller="Account" asp-action="Register">Register</a>
+                        }
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <main role="main" class="container flex-grow-1 py-4">
+        <partial name="_StatusMessage" />
+        @RenderBody()
+    </main>
+
+    <footer class="app-footer border-top bg-white py-3">
+        <div class="container d-flex flex-wrap justify-content-between gap-2 small text-muted">
+            <span>&copy; @DateTime.Now.Year Cinema 101 &middot; Server Web lab project</span>
+            <a class="link-secondary" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
+    <div class="modal fade" id="app-modal" tabindex="-1" aria-labelledby="app-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" data-modal-content></div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

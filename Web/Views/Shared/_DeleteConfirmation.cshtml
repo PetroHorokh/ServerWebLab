@@ -1,0 +1,19 @@
+@model DeleteConfirmationViewModel
+<form action="@Model.ActionUrl" method="post" asp-antiforgery="true" data-ajax-form>
+    <div class="modal-header">
+        <h2 class="modal-title h5" id="app-modal-title">@Model.Title</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <p class="mb-2">Are you sure you want to delete <strong>@Model.ItemName</strong>?</p>
+        @if (Model.Details is not null)
+        {
+            <p class="text-muted mb-2">@Model.Details</p>
+        }
+        <p class="text-danger small mb-0">This can't be undone.</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-danger">Delete</button>
+    </div>
+</form>

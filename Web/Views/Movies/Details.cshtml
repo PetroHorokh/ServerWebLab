@@ -1,0 +1,128 @@
+@model MovieDetailsPageViewModel
+@{
+    var movie = Model.Movie;
+    var isAdmin = User.IsInRole(AppRoles.Admin);
+    var canWrite = isAdmin || User.IsInRole(AppRoles.Member);
+    var returnUrl = Context.Request.Path.Value;
+    ViewData["Title"] = movie.Title;
+}
+
+<a class="link-secondary text-decoration-none d-inline-block mb-3" asp-action="Index">&larr; All movies</a>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <section class="card movie-details shadow-sm" aria-labelledby="movie-title">
+            <div class="card-body p-4">
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                    <span class="badge bg-light text-dark border">@movie.Genre</span>
+                    <span class="badge bg-light text-dark border">@movie.ReleaseYear</span>
+                </div>
+                <h1 class="h2 mb-3" id="movie-title">@movie.Title</h1>
+
+                <dl class="row movie-facts mb-3">
+                    <dt class="col-4">Director</dt>
+                    <dd class="col-8">@(movie.Director ?? "—")</dd>
+                    <dt class="col-4">Duration</dt>
+                    <dd class="col-8">@movie.DurationMinutes min</dd>
+                    <dt class="col-4">Rating</dt>
+                    <dd class="col-8">
+                        @if (movie.Rating is { } rating)
+                        {
+                            <span class="rating">@rating.ToString("0.0")</span><span class="text-muted small"> / 10</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </dd>
+                </dl>
+
+                @if (movie.Description is not null)
+                {
+                    <p class="mb-4">@movie.Description</p>
+                }
+
+                <h2 class="h6 text-uppercase text-muted mb-2">Cast</h2>
+                @if (movie.Cast.Count == 0)
+                {
+                    <p class="text-muted mb-0">No cast has been added yet.</p>
+                }
+                else
+                {
+                    <ul class="list-unstyled cast-list mb-0">
+                        @foreach (var castMember in movie.Cast)
+                        {
+                            <li>
+                                <span>
+                                    <span class="fw-bold">@castMember.ActorFullName</span>
+                                    @if (castMember.IsLeadRole)
+                                    {
+                                        <span class="badge bg-warning text-dark ms-1">Lead</span>
+                                    }
+                                </span>
+                                <span class="text-muted text-end">@castMember.CharacterName</span>
+                            </li>
+                        }
+                    </ul>
+                }
+
+                @if (isAdmin)
+                {
+                    <div class="mt-4 pt-3 border-top">
+                        <button type="button" class="btn btn-outline-dark btn-sm" data-modal-url="@Url.Action("Edit", new { id = movie.Id })">Edit movie</button>
+                    </div>
+                }
+            </div>
+        </section>
+    </div>
+
+    <div class="col-lg-7">
+        <section class="card chat-card shadow-sm" aria-labelledby="chat-title">
+            <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
+                <h2 class="h5 mb-0" id="chat-title">Chat</h2>
+                <span class="small text-muted">New messages appear automatically</span>
+            </div>
+            <div class="chat-messages" role="log" aria-labelledby="chat-title"
+                 data-chat-messages data-messages-url="@Url.Action("Messages", "Chat", new { movieId = movie.Id })"
+                 data-chat-synced="@Model.ChatSyncedAt.Ticks">
+                <p class="chat-empty text-muted @(Model.Messages.Count > 0 ? "d-none" : null)" data-chat-empty>
+                    @(canWrite ? "No messages yet. Start the conversation!" : "No messages yet.")
+                </p>
+                <partial name="_ChatMessages" model="Model.Messages" />
+            </div>
+            @if (canWrite)
+            {
+                <form class="chat-form card-footer bg-white" asp-controller="Chat" asp-action="Send" asp-route-movieId="@movie.Id"
+                      method="post" data-chat-form>
+                    <label for="chat-input" class="visually-hidden">Message</label>
+                    <div class="d-flex gap-2 align-items-end">
+                        <textarea id="chat-input" name="Message" class="form-control" rows="2"
+                                  maxlength="@ChatMessageCreateModel.MaxLength" placeholder="Write a message…"></textarea>
+                        <button type="submit" class="btn btn-dark">Send</button>
+                    </div>
+                    <div class="d-flex flex-wrap justify-content-between gap-2 mt-1 small">
+                        <span class="text-danger" role="alert" data-chat-error></span>
+                        <span class="text-muted">Enter to send &middot; Shift+Enter for a new line</span>
+                    </div>
+                </form>
+            }
+            else
+            {
+                <div class="chat-guest card-footer bg-white">
+                    <span class="text-muted">You're reading as a guest. Log in to write in this chat.</span>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-dark btn-sm" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@returnUrl">Log in</a>
+                        <a class="btn btn-outline-dark btn-sm" asp-controller="Account" asp-action="Register" asp-route-returnUrl="@returnUrl">Create an account</a>
+                    </div>
+                </div>
+            }
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    @if (isAdmin)
+    {
+        <partial name="_ValidationScriptsPartial" />
+    }
+}

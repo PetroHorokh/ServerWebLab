@@ -1,0 +1,89 @@
+@model List<MovieViewModel>
+@{
+    ViewData["Title"] = "Movies";
+}
+
+<div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Movies</h1>
+        <p class="text-muted mb-0">@Model.Count @(Model.Count == 1 ? "movie" : "movies") in the catalog.</p>
+    </div>
+    <button type="button" class="btn btn-dark" data-modal-url="@Url.Action("Create")">+ Add New Movie</button>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="empty-state">
+        <h2 class="h5">No movies yet</h2>
+        <p class="text-muted mb-0">Use <strong>Add New Movie</strong> to add the first one.</p>
+    </div>
+}
+else
+{
+    <div class="card data-card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover data-table mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Genre</th>
+                        <th scope="col">Year</th>
+                        <th scope="col">Duration</th>
+                        <th scope="col">Director</th>
+                        <th scope="col">Rating</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Actors</th>
+                        <th scope="col" class="text-end col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var movie in Model)
+                    {
+                        <tr>
+                            <td><code class="small text-muted" title="@movie.Id">@movie.Id.ToString()[..8]</code></td>
+                            <td class="fw-bold"><a class="link-dark" asp-action="Details" asp-route-id="@movie.Id">@movie.Title</a></td>
+                            <td><span class="badge bg-light text-dark border">@movie.Genre</span></td>
+                            <td>@movie.ReleaseYear</td>
+                            <td class="text-nowrap">@movie.DurationMinutes min</td>
+                            <td>@(movie.Director ?? "—")</td>
+                            <td class="text-nowrap">
+                                @if (movie.Rating is { } rating)
+                                {
+                                    <span class="rating">@rating.ToString("0.0")</span><span class="text-muted small"> / 10</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td><div class="cell-truncate" title="@movie.Description">@(movie.Description ?? "—")</div></td>
+                            <td class="cell-tags">
+                                @if (movie.Actors.Count == 0)
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                                @foreach (var actor in movie.Actors)
+                                {
+                                    <span class="badge tag">@actor.FullName</span>
+                                }
+                            </td>
+                            <td class="text-end text-nowrap col-actions">
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        data-modal-url="@Url.Action("Edit", new { id = movie.Id })"
+                                        aria-label="Edit @movie.Title">Edit</button>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        data-modal-url="@Url.Action("Delete", new { id = movie.Id })"
+                                        aria-label="Delete @movie.Title">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

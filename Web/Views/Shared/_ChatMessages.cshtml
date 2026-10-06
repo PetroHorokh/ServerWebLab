@@ -1,0 +1,22 @@
+@model IEnumerable<ChatMessageViewModel>
+@{
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var canDelete = User.IsInRole(AppRoles.Admin);
+}
+@foreach (var message in Model)
+{
+    var isMine = string.Equals(message.AuthorId.ToString(), currentUserId, StringComparison.OrdinalIgnoreCase);
+    <article class="chat-message @(isMine ? "is-mine" : null)" data-message-id="@message.Id">
+        <header class="chat-meta">
+            <span class="chat-author">@message.AuthorName</span>
+            <span class="badge @(message.IsAdmin ? "bg-dark" : "bg-light text-dark border")">@message.RoleTag</span>
+            <time class="chat-time" datetime="@message.PostedDateTime.ToString("o")" data-local-time>@message.PostedDateTime.ToString("d MMM yyyy, HH:mm") UTC</time>
+            @if (canDelete)
+            {
+                <button type="button" class="chat-delete" data-modal-url="@Url.Action("Delete", "Chat", new { id = message.Id })"
+                        aria-label="Delete the message from @message.AuthorName">Delete</button>
+            }
+        </header>
+        <p class="chat-text">@message.Message</p>
+    </article>
+}

@@ -1,0 +1,76 @@
+@model List<ActorViewModel>
+@{
+    ViewData["Title"] = "Actors";
+}
+
+<div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Actors</h1>
+        <p class="text-muted mb-0">@Model.Count @(Model.Count == 1 ? "actor" : "actors") in the catalog.</p>
+    </div>
+    <button type="button" class="btn btn-dark" data-modal-url="@Url.Action("Create")">+ Add New Actor</button>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="empty-state">
+        <h2 class="h5">No actors yet</h2>
+        <p class="text-muted mb-0">Use <strong>Add New Actor</strong> to add the first one.</p>
+    </div>
+}
+else
+{
+    <div class="card data-card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover data-table mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">First name</th>
+                        <th scope="col">Last name</th>
+                        <th scope="col">Date of birth</th>
+                        <th scope="col">Nationality</th>
+                        <th scope="col">Biography</th>
+                        <th scope="col">Movies</th>
+                        <th scope="col" class="text-end col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var actor in Model)
+                    {
+                        <tr>
+                            <td><code class="small text-muted" title="@actor.Id">@actor.Id.ToString()[..8]</code></td>
+                            <td class="fw-bold">@actor.FirstName</td>
+                            <td class="fw-bold">@actor.LastName</td>
+                            <td class="text-nowrap">@(actor.DateOfBirth?.ToString("d MMM yyyy") ?? "—")</td>
+                            <td>@(actor.Nationality ?? "—")</td>
+                            <td><div class="cell-truncate" title="@actor.Biography">@(actor.Biography ?? "—")</div></td>
+                            <td class="cell-tags">
+                                @if (actor.Movies.Count == 0)
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                                @foreach (var movie in actor.Movies)
+                                {
+                                    <span class="badge tag">@movie.DisplayName</span>
+                                }
+                            </td>
+                            <td class="text-end text-nowrap col-actions">
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        data-modal-url="@Url.Action("Edit", new { id = actor.Id })"
+                                        aria-label="Edit @actor.FullName">Edit</button>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        data-modal-url="@Url.Action("Delete", new { id = actor.Id })"
+                                        aria-label="Delete @actor.FullName">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

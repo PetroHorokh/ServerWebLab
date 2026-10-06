@@ -1,0 +1,82 @@
+@model MovieFormViewModel
+@{
+    var editId = Model.EditId;
+    var actorsDropdown = new MultiSelectDropdownViewModel
+    {
+        Id = Html.IdFor(m => m.Input.ActorIds),
+        Name = Html.NameFor(m => m.Input.ActorIds),
+        Label = "Actors",
+        Placeholder = "Select the actors that had a role in this movie",
+        EmptyText = "There are no actors yet. Add some on the Actors page first.",
+        Options = Model.ActorOptions,
+    };
+}
+<form asp-controller="Movies" asp-action="@(editId is null ? "Create" : "Edit")" asp-route-id="@editId" method="post" data-ajax-form>
+    <div class="modal-header">
+        <h2 class="modal-title h5" id="app-modal-title">@(editId is null ? "Add New Movie" : "Edit Movie")</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+        <div class="row g-3">
+            <div class="col-md-8">
+                <label asp-for="Input.Title" class="form-label"></label>
+                <input asp-for="Input.Title" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Input.Title"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Input.ReleaseYear" class="form-label"></label>
+                <input asp-for="Input.ReleaseYear" type="number" class="form-control" min="1888" max="2100" />
+                <span asp-validation-for="Input.ReleaseYear"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Input.Genre" class="form-label"></label>
+                <input asp-for="Input.Genre" class="form-control" list="genre-suggestions" autocomplete="off" />
+                <datalist id="genre-suggestions">
+                    <option value="Action"></option>
+                    <option value="Adventure"></option>
+                    <option value="Animation"></option>
+                    <option value="Comedy"></option>
+                    <option value="Crime"></option>
+                    <option value="Documentary"></option>
+                    <option value="Drama"></option>
+                    <option value="Fantasy"></option>
+                    <option value="Horror"></option>
+                    <option value="Musical"></option>
+                    <option value="Romance"></option>
+                    <option value="Sci-Fi"></option>
+                    <option value="Thriller"></option>
+                    <option value="Western"></option>
+                </datalist>
+                <span asp-validation-for="Input.Genre"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Input.DurationMinutes" class="form-label"></label>
+                <input asp-for="Input.DurationMinutes" type="number" class="form-control" min="1" max="600" />
+                <span asp-validation-for="Input.DurationMinutes"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Input.Rating" class="form-label"></label>
+                <input asp-for="Input.Rating" type="number" class="form-control" min="0" max="10" step="0.1" />
+                <span asp-validation-for="Input.Rating"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="Input.Director" class="form-label"></label>
+                <input asp-for="Input.Director" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Input.Director"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="Input.Description" class="form-label"></label>
+                <textarea asp-for="Input.Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Input.Description"></span>
+            </div>
+            <div class="col-12">
+                <partial name="_MultiSelectDropdown" model="actorsDropdown" />
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-dark">@(editId is null ? "Add movie" : "Save changes")</button>
+    </div>
+</form>
