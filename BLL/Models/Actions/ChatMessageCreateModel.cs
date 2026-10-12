@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using DAL.Constraints;
 
 namespace BLL.Models.Actions;
 
 public class ChatMessageCreateModel
 {
-    public const int MaxLength = 1000;
+    public const int MaxLength = ChatMessageConstraints.MessageMaxLength;
 
     [Required(ErrorMessage = "Write a message first.")]
     [StringLength(MaxLength, ErrorMessage = "A message can be at most {1} characters long.")]

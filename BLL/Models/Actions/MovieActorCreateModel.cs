@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using DAL.Constraints;
 
 namespace BLL.Models.Actions;
 
@@ -12,14 +13,14 @@ public class MovieActorCreateModel
     [Display(Name = "Actor")]
     public Guid? ActorId { get; set; }
 
-    [StringLength(150)]
+    [StringLength(MovieActorConstraints.CharacterNameMaxLength)]
     [Display(Name = "Character name")]
     public string? CharacterName { get; set; }
 
     [Display(Name = "Lead role")]
     public bool IsLeadRole { get; set; }
 
-    [Range(1, 999)]
+    [Range(MovieActorConstraints.MinBillingOrder, MovieActorConstraints.MaxBillingOrder)]
     [Display(Name = "Billing order")]
     public int? BillingOrder { get; set; }
 }

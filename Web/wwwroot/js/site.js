@@ -70,6 +70,90 @@
         });
     }
 
+    const draftKeyPrefix = 'cinema-draft:';
+
+    function readStoredDraft(key) {
+        try {
+            const raw = window.sessionStorage.getItem(draftKeyPrefix + key);
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
+    }
+
+    function storeDraft(key, draft) {
+        try {
+            window.sessionStorage.setItem(draftKeyPrefix + key, JSON.stringify(draft));
+        } catch {
+        }
+    }
+
+    function discardDraft(key) {
+        try {
+            window.sessionStorage.removeItem(draftKeyPrefix + key);
+        } catch {
+        }
+    }
+
+    function discardAllDrafts() {
+        try {
+            Object.keys(window.sessionStorage)
+                .filter(function (key) { return key.startsWith(draftKeyPrefix); })
+                .forEach(function (key) { window.sessionStorage.removeItem(key); });
+        } catch {
+        }
+    }
+
+    function isDraftForm(form) {
+        return !!form && form.hasAttribute('data-draft-key');
+    }
+
+    function isEditDraftForm(form) {
+        return isDraftForm(form) && form.getAttribute('data-draft-mode') === 'edit';
+    }
+
+    function draftSignature(state) {
+        const names = Object.keys(state.values).sort();
+        return JSON.stringify([
+            names.map(function (name) { return [name, state.values[name]]; }),
+            state.checked.slice().sort()
+        ]);
+    }
+
+    function sameDraftState(first, second) {
+        return draftSignature(first) === draftSignature(second);
+    }
+
+    function draftFields(form) {
+        return Array.from(form.elements).filter(function (field) {
+            return field.name && !field.disabled && !['hidden', 'search', 'submit', 'button'].includes(field.type);
+        });
+    }
+
+    function captureDraft(form) {
+        const draft = { values: {}, checked: [] };
+        draftFields(form).forEach(function (field) {
+            if (field.type === 'checkbox' || field.type === 'radio') {
+                if (field.checked) {
+                    draft.checked.push(field.name + '=' + field.value);
+                }
+            } else {
+                draft.values[field.name] = field.value;
+            }
+        });
+        return draft;
+    }
+
+    function applyDraft(form, draft) {
+        draftFields(form).forEach(function (field) {
+            if (field.type === 'checkbox' || field.type === 'radio') {
+                field.checked = draft.checked.includes(field.name + '=' + field.value);
+            } else if (Object.prototype.hasOwnProperty.call(draft.values, field.name)) {
+                field.value = draft.values[field.name];
+            }
+        });
+    }
+
     function initModals() {
         const modalElement = document.getElementById('app-modal');
         if (!modalElement || !window.bootstrap) {
@@ -119,10 +203,57 @@
             }
         }
 
-        function render(html) {
+        const draftBaselines = new WeakMap();
+
+        function showDraftNotice(form, message, variant) {
+            const body = form.querySelector('.modal-body');
+            if (!body) {
+                return;
+            }
+
+            const notice = document.createElement('div');
+            notice.className = 'alert ' + variant + ' py-2 small';
+            notice.setAttribute('role', 'status');
+            notice.setAttribute('data-draft-notice', '');
+            notice.textContent = message;
+            body.prepend(notice);
+        }
+
+        function prepareDraft(form, restoreDraft) {
+            const draftKey = form.getAttribute('data-draft-key');
+            const stored = readStoredDraft(draftKey);
+
+            if (!restoreDraft) {
+                draftBaselines.set(form, stored ? stored.baseline : null);
+                return;
+            }
+
+            const current = captureDraft(form);
+            draftBaselines.set(form, current);
+            if (!stored) {
+                return;
+            }
+
+            if (isEditDraftForm(form) && stored.baseline && !sameDraftState(stored.baseline, current)) {
+                discardDraft(draftKey);
+                showDraftNotice(form,
+                    'This item was changed after you started editing it, so its current saved version is shown and your unsaved changes were discarded.',
+                    'alert-warning');
+                return;
+            }
+
+            applyDraft(form, stored);
+            showDraftNotice(form, 'Your unsaved changes were restored. Press Close to discard them.', 'alert-info');
+        }
+
+        function render(html, restoreDraft) {
             modalContent.innerHTML = html;
 
             const form = modalContent.querySelector('form[data-ajax-form]');
+            if (isDraftForm(form)) {
+                prepareDraft(form, restoreDraft);
+            }
+
             if (form && window.jQuery && jQuery.validator && jQuery.validator.unobtrusive) {
                 jQuery.validator.unobtrusive.parse(form);
             }
@@ -145,7 +276,7 @@
                     return;
                 }
 
-                render(await response.text());
+                render(await response.text(), true);
             } catch {
                 renderError(offlineMessage);
             }
@@ -164,13 +295,17 @@
                 if (response.ok && contentType.includes('application/json')) {
                     const result = await response.json();
                     if (result.success) {
+                        if (isDraftForm(form)) {
+                            discardDraft(form.getAttribute('data-draft-key'));
+                        }
+
                         window.location.reload();
                         return;
                     }
                 }
 
                 if ((response.ok || response.status === 400) && contentType.includes('text/html')) {
-                    render(await response.text());
+                    render(await response.text(), false);
                     return;
                 }
 
@@ -206,6 +341,37 @@
             }
 
             submitForm(form);
+        });
+
+        function saveDraftFromEvent(event) {
+            const form = event.target.closest('form');
+            if (!event.target.name || !isDraftForm(form)) {
+                return;
+            }
+
+            const draftKey = form.getAttribute('data-draft-key');
+            const state = captureDraft(form);
+            const baseline = draftBaselines.get(form) || null;
+            if (baseline && sameDraftState(state, baseline)) {
+                discardDraft(draftKey);
+                return;
+            }
+
+            storeDraft(draftKey, { values: state.values, checked: state.checked, baseline: baseline });
+        }
+
+        modalContent.addEventListener('input', saveDraftFromEvent);
+        modalContent.addEventListener('change', saveDraftFromEvent);
+        modalContent.addEventListener('click', function (event) {
+            const discardButton = event.target.closest('[data-draft-discard]');
+            const form = discardButton && discardButton.closest('form');
+            if (isDraftForm(form)) {
+                discardDraft(form.getAttribute('data-draft-key'));
+            }
+        });
+
+        document.querySelectorAll('form[data-clear-drafts]').forEach(function (form) {
+            form.addEventListener('submit', discardAllDrafts);
         });
 
         modalElement.addEventListener('shown.bs.modal', focusFirstField);
