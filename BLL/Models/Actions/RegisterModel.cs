@@ -1,0 +1,53 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace BLL.Models.Actions;
+
+public class RegisterModel : IValidatableObject
+{
+    [Required]
+    [StringLength(50, MinimumLength = 2)]
+    [Display(Name = "Display name")]
+    public string DisplayName { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(100)]
+    [Display(Name = "First name")]
+    public string FirstName { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(100)]
+    [Display(Name = "Last name")]
+    public string LastName { get; set; } = string.Empty;
+
+    [DataType(DataType.Date)]
+    [Display(Name = "Date of birth")]
+    public DateOnly? DateOfBirth { get; set; }
+
+    [Required]
+    [EmailAddress]
+    [StringLength(256)]
+    public string Email { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(100, MinimumLength = 6)]
+    [DataType(DataType.Password)]
+    public string Password { get; set; } = string.Empty;
+
+    [Required]
+    [DataType(DataType.Password)]
+    [Compare(nameof(Password), ErrorMessage = "The passwords don't match.")]
+    [Display(Name = "Confirm password")]
+    public string ConfirmPassword { get; set; } = string.Empty;
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (DateOfBirth > DateOnly.FromDateTime(DateTime.UtcNow))
+        {
+            yield return new ValidationResult("Date of birth cannot be in the future.", [nameof(DateOfBirth)]);
+        }
+        else if (DateOfBirth < new DateOnly(1900, 1, 1))
+        {
+            yield return new ValidationResult("Enter a date of birth after 1900.", [nameof(DateOfBirth)]);
+        }
+    }
+}

@@ -1,8 +1,87 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Home";
+    var isSignedIn = User.Identity?.IsAuthenticated == true;
+    var isAdmin = User.IsInRole(AppRoles.Admin);
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="hero p-4 p-md-5 mb-5">
+    <p class="hero-eyebrow text-uppercase small fw-bold mb-2">Server Web lab project &middot; ASP.NET Core MVC</p>
+    <h1 class="display-5 fw-bold mb-3">Welcome to Cinema 101</h1>
+    <p class="lead hero-lead mb-4">
+        A small movie catalog that keeps track of films and the actors who star in them.
+        Pick a movie, read about it and talk it over with other fans in its chat.
+    </p>
+    <div class="d-flex flex-wrap gap-3">
+        @if (isAdmin)
+        {
+            <a class="btn btn-warning btn-lg px-4 fw-bold" asp-controller="Movies" asp-action="Index">Manage Movies</a>
+            <a class="btn btn-outline-light btn-lg px-4" asp-controller="Actors" asp-action="Index">Manage Actors</a>
+        }
+        else
+        {
+            <a class="btn btn-warning btn-lg px-4 fw-bold" asp-controller="Movies" asp-action="Index">Browse Movies</a>
+            @if (!isSignedIn)
+            {
+                <a class="btn btn-outline-light btn-lg px-4" asp-controller="Account" asp-action="Register">Create an account</a>
+            }
+        }
+    </div>
+</section>
+
+<section class="mb-4" aria-labelledby="features-heading">
+    <h2 class="h4 mb-3" id="features-heading">What you can do</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card feature-card h-100 shadow-sm">
+                <div class="card-body p-4">
+                    <span class="feature-icon mb-3" aria-hidden="true">M</span>
+                    <h3 class="h5">Movies</h3>
+                    <p class="text-muted">
+                        Browse the catalog and open any movie to see its genre, director, rating,
+                        description and cast.
+                    </p>
+                    <a class="btn btn-dark" asp-controller="Movies" asp-action="Index">Go to Movies</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card h-100 shadow-sm">
+                <div class="card-body p-4">
+                    <span class="feature-icon mb-3" aria-hidden="true">C</span>
+                    <h3 class="h5">Movie chats</h3>
+                    <p class="text-muted">
+                        Every movie has its own chat. Anyone can read it; members and admins can
+                        leave messages there and talk about the film.
+                    </p>
+                    @if (!isSignedIn)
+                    {
+                        <a class="btn btn-outline-dark" asp-controller="Account" asp-action="Register">Create an account</a>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card h-100 shadow-sm">
+                <div class="card-body p-4">
+                    <span class="feature-icon mb-3" aria-hidden="true">A</span>
+                    <h3 class="h5">Catalog management</h3>
+                    <p class="text-muted">
+                        Admins add and edit movies, actors and the cast of every movie,
+                        including character names and billing order.
+                    </p>
+                    @if (isAdmin)
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            <a class="btn btn-dark" asp-controller="Actors" asp-action="Index">Actors</a>
+                            <a class="btn btn-outline-dark" asp-controller="MovieActors" asp-action="Index">Cast &amp; Roles</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="badge bg-light text-dark border">Admins only</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

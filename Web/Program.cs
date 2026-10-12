@@ -1,23 +1,50 @@
+using BLL;
+using BLL.Common;
+using BLL.Identity;
+using BLL.Services.Interfaces;
+using Web.Services.Implementations;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+var connectionString = builder.Configuration.GetConnectionString("CinemaDb")
+    ?? throw new InvalidOperationException(
+        "Connection string 'CinemaDb' is missing. Add it to the ConnectionStrings section of appsettings.json.");
+
+var defaultAdmin = builder.Configuration.GetSection("DefaultAdmin").Get<DefaultAdminOptions>()
+    ?? throw new InvalidOperationException("The DefaultAdmin section is missing from appsettings.json.");
+
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddBusinessLogic(connectionString, builder.Configuration["AutoMapper:LicenseKey"]);
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<ICurrentUserService, HttpContextCurrentUserService>();
+
+builder.Services.AddWebOptimizer(pipeline =>
+{
+    pipeline.AddCssBundle("/css/bundle.css", "lib/bootstrap/dist/css/bootstrap.css", "css/site.css");
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+await app.Services.SeedIdentityAsync(defaultAdmin);
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+
+app.UseRequestLocalization("en-US");
+
+app.UseWebOptimizer();
 app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

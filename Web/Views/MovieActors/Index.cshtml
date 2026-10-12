@@ -1,0 +1,74 @@
+@model List<MovieActorViewModel>
+@{
+    ViewData["Title"] = "Cast & Roles";
+}
+
+<div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Cast &amp; Roles</h1>
+        <p class="text-muted mb-0">@Model.Count @(Model.Count == 1 ? "role" : "roles") linking movies and actors.</p>
+    </div>
+    <button type="button" class="btn btn-dark" data-modal-url="@Url.Action("Create")">+ Add New Role</button>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="empty-state">
+        <h2 class="h5">No roles yet</h2>
+        <p class="text-muted mb-0">
+            Use <strong>Add New Role</strong>, or pick the cast while adding a movie or an actor.
+        </p>
+    </div>
+}
+else
+{
+    <div class="card data-card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover data-table mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Movie</th>
+                        <th scope="col">Actor</th>
+                        <th scope="col">Character name</th>
+                        <th scope="col">Lead role</th>
+                        <th scope="col">Billing order</th>
+                        <th scope="col" class="text-end col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var role in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold">@role.MovieDisplayName</td>
+                            <td>@role.ActorFullName</td>
+                            <td>@(role.CharacterName ?? "—")</td>
+                            <td>
+                                @if (role.IsLeadRole)
+                                {
+                                    <span class="badge bg-warning text-dark">Lead</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Supporting</span>
+                                }
+                            </td>
+                            <td>@(role.BillingOrder?.ToString() ?? "—")</td>
+                            <td class="text-end text-nowrap col-actions">
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        data-modal-url="@Url.Action("Edit", new { movieId = role.MovieId, actorId = role.ActorId })"
+                                        aria-label="Edit the role of @role.ActorFullName in @role.MovieTitle">Edit</button>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        data-modal-url="@Url.Action("Delete", new { movieId = role.MovieId, actorId = role.ActorId })"
+                                        aria-label="Delete the role of @role.ActorFullName in @role.MovieTitle">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
