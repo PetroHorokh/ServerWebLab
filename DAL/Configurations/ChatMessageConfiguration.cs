@@ -11,9 +11,6 @@ internal sealed class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMe
         builder.ToTable("ChatMessages");
         builder.HasKey(m => m.Id);
 
-        builder.Property(m => m.Message).HasMaxLength(1000).IsRequired();
-        builder.Property(m => m.RoleTag).HasMaxLength(20).IsRequired();
-
         builder.HasOne(m => m.Movie)
             .WithMany(movie => movie.ChatMessages)
             .HasForeignKey(m => m.MovieId)

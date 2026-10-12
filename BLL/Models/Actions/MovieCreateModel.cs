@@ -1,35 +1,36 @@
 using System.ComponentModel.DataAnnotations;
+using DAL.Constraints;
 
 namespace BLL.Models.Actions;
 
 public class MovieCreateModel
 {
     [Required]
-    [StringLength(200)]
+    [StringLength(MovieConstraints.TitleMaxLength)]
     public string Title { get; set; } = string.Empty;
 
     [Required]
-    [StringLength(50)]
+    [StringLength(MovieConstraints.GenreMaxLength)]
     public string Genre { get; set; } = string.Empty;
 
     [Required]
-    [Range(1888, 2100)]
+    [Range(MovieConstraints.MinReleaseYear, MovieConstraints.MaxReleaseYear)]
     [Display(Name = "Release year")]
     public int? ReleaseYear { get; set; }
 
     [Required]
-    [Range(1, 600)]
+    [Range(MovieConstraints.MinDurationMinutes, MovieConstraints.MaxDurationMinutes)]
     [Display(Name = "Duration (minutes)")]
     public int? DurationMinutes { get; set; }
 
-    [StringLength(150)]
+    [StringLength(MovieConstraints.DirectorMaxLength)]
     public string? Director { get; set; }
 
-    [Range(0.0, 10.0)]
+    [Range(MovieConstraints.MinRating, MovieConstraints.MaxRating)]
     [Display(Name = "Rating (0-10)")]
     public decimal? Rating { get; set; }
 
-    [StringLength(2000)]
+    [StringLength(MovieConstraints.DescriptionMaxLength)]
     public string? Description { get; set; }
 
     [Display(Name = "Actors")]

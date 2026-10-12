@@ -11,10 +11,6 @@ internal sealed class UserIdentityConfiguration : IEntityTypeConfiguration<UserI
         builder.ToTable("UserIdentity");
         builder.HasKey(u => u.Id);
 
-        builder.Property(u => u.DisplayName).HasMaxLength(50).IsRequired();
-        builder.Property(u => u.FirstName).HasMaxLength(100).IsRequired();
-        builder.Property(u => u.LastName).HasMaxLength(100).IsRequired();
-
         builder.HasIndex(u => u.UserId).IsUnique();
 
         builder.HasOne(u => u.User)

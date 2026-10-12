@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using DAL.Constraints;
 
 namespace BLL.Models.Actions;
 
@@ -6,6 +7,7 @@ public class LoginModel
 {
     [Required]
     [EmailAddress]
+    [StringLength(UserConstraints.EmailMaxLength)]
     public string Email { get; set; } = string.Empty;
 
     [Required]

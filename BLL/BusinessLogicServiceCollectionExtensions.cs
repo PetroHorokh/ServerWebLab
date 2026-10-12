@@ -4,6 +4,7 @@ using BLL.Mapping;
 using BLL.Services.Implementations;
 using BLL.Services.Interfaces;
 using DAL;
+using DAL.Constraints;
 using DAL.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,7 @@ public static class BusinessLogicServiceCollectionExtensions
         services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
             {
                 options.User.RequireUniqueEmail = true;
+                options.Password.RequiredLength = UserConstraints.PasswordMinLength;
                 options.SignIn.RequireConfirmedAccount = false;
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
