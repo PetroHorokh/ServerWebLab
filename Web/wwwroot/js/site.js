@@ -13,7 +13,13 @@
         root.querySelectorAll('time[data-local-time]').forEach(function (element) {
             const date = new Date(element.getAttribute('datetime'));
             if (!isNaN(date.getTime())) {
-                element.textContent = date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+                const full = date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+                if (element.getAttribute('data-local-time') === 'date') {
+                    element.textContent = date.toLocaleDateString([], { dateStyle: 'medium' });
+                    element.title = full;
+                } else {
+                    element.textContent = full;
+                }
                 element.removeAttribute('data-local-time');
             }
         });
@@ -126,7 +132,8 @@
 
     function draftFields(form) {
         return Array.from(form.elements).filter(function (field) {
-            return field.name && !field.disabled && !['hidden', 'search', 'submit', 'button'].includes(field.type);
+            return field.name && !field.disabled && !field.hasAttribute('data-draft-ignore')
+                && !['hidden', 'search', 'submit', 'button', 'password'].includes(field.type);
         });
     }
 
@@ -259,6 +266,7 @@
             }
 
             initMultiselects(modalContent);
+            initPasswordToggles(modalContent);
 
             if (modalElement.classList.contains('show')) {
                 focusFirstField();

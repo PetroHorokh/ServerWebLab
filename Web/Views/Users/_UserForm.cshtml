@@ -1,0 +1,66 @@
+@model UserFormViewModel
+@{
+    var editId = Model.EditId;
+}
+<form asp-controller="Users" asp-action="@(editId is null ? "Create" : "Edit")" asp-route-id="@editId" method="post" data-ajax-form
+      data-draft-key="@(editId is null ? "users:new" : $"users:edit:{editId}")" data-draft-mode="@(editId is null ? "create" : "edit")">
+    <div class="modal-header">
+        <h2 class="modal-title h5" id="app-modal-title">@(editId is null ? "Add New User" : "Edit User")</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Exit" title="Exit (your entries are kept)"></button>
+    </div>
+    <div class="modal-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="Input.FirstName" class="form-label"></label>
+                <input asp-for="Input.FirstName" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Input.FirstName"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Input.LastName" class="form-label"></label>
+                <input asp-for="Input.LastName" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Input.LastName"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Input.DisplayName" class="form-label"></label>
+                <input asp-for="Input.DisplayName" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Input.DisplayName"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Input.DateOfBirth" class="form-label"></label>
+                <input asp-for="Input.DateOfBirth" type="date" class="form-control"
+                       min="1900-01-01" max="@DateTime.UtcNow.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="Input.DateOfBirth"></span>
+            </div>
+            <div class="col-md-8">
+                <label asp-for="Input.Email" class="form-label"></label>
+                <input asp-for="Input.Email" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Input.Email"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Input.Role" class="form-label"></label>
+                @if (Model.IsSelf)
+                {
+                    <input type="hidden" asp-for="Input.Role" />
+                    <select class="form-select" disabled aria-describedby="role-locked-hint">
+                        <option>@Model.Input.Role</option>
+                    </select>
+                    <div class="form-text" id="role-locked-hint">You can't change your own role.</div>
+                }
+                else
+                {
+                    <select asp-for="Input.Role" asp-items="Model.RoleOptions" class="form-select"></select>
+                    <span asp-validation-for="Input.Role"></span>
+                }
+            </div>
+            @if (Model.Input is UserCreateModel)
+            {
+                <partial name="_UserPasswordFields" for="Input" />
+            }
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-draft-discard>Close</button>
+        <button type="submit" class="btn btn-dark">@(editId is null ? "Add user" : "Save changes")</button>
+    </div>
+</form>

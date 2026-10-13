@@ -6,12 +6,20 @@ public abstract class ModalControllerBase : Controller
 {
     public const string StatusMessageKey = "StatusMessage";
 
+    public const string StatusMessageIsErrorKey = "StatusMessageIsError";
+
     protected const string DeleteConfirmationView = "_DeleteConfirmation";
 
     protected JsonResult ModalSuccess(string message)
     {
-        TempData[StatusMessageKey] = message;
+        SetStatusMessage(message);
         return Json(new { success = true });
+    }
+
+    protected void SetStatusMessage(string message, bool isError = false)
+    {
+        TempData[StatusMessageKey] = message;
+        TempData[StatusMessageIsErrorKey] = isError;
     }
 
     protected PartialViewResult ModalForm(string viewName, object model)

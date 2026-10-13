@@ -18,6 +18,21 @@ public class UserIdentityProfile : Profile
             .ForMember(d => d.LastName, o => o.MapFrom(s => s.LastName.Trim()))
             .IgnoreAuditFields();
 
+        CreateMap<UserModelBase, UserIdentity>()
+            .ForMember(d => d.Id, o => o.Ignore())
+            .ForMember(d => d.UserId, o => o.Ignore())
+            .ForMember(d => d.User, o => o.Ignore())
+            .ForMember(d => d.DisplayName, o => o.MapFrom(s => s.DisplayName.Trim()))
+            .ForMember(d => d.FirstName, o => o.MapFrom(s => s.FirstName.Trim()))
+            .ForMember(d => d.LastName, o => o.MapFrom(s => s.LastName.Trim()))
+            .IgnoreAuditFields();
+
+        CreateMap<UserCreateModel, UserIdentity>()
+            .IncludeBase<UserModelBase, UserIdentity>();
+
+        CreateMap<UserUpdateModel, UserIdentity>()
+            .IncludeBase<UserModelBase, UserIdentity>();
+
         CreateMap<DefaultAdminOptions, UserIdentity>()
             .ForMember(d => d.Id, o => o.Ignore())
             .ForMember(d => d.UserId, o => o.Ignore())

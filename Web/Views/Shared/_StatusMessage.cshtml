@@ -1,7 +1,8 @@
 @using Web.Controllers
 @if (TempData[ModalControllerBase.StatusMessageKey] is string message)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="status">
+    var isError = TempData[ModalControllerBase.StatusMessageIsErrorKey] is true;
+    <div class="alert @(isError ? "alert-danger" : "alert-success") alert-dismissible fade show" role="@(isError ? "alert" : "status")">
         @message
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>

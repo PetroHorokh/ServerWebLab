@@ -32,6 +32,8 @@ public static class BusinessLogicServiceCollectionExtensions
             .AddEntityFrameworkStores<CinemaDbContext>()
             .AddClaimsPrincipalFactory<CinemaUserClaimsPrincipalFactory>();
 
+        services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.FromMinutes(1));
+
         services.AddAutoMapper(
             config =>
             {
@@ -50,6 +52,7 @@ public static class BusinessLogicServiceCollectionExtensions
         services.AddScoped<IMovieActorService, MovieActorService>();
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IAccountService, AccountService>();
+        services.AddScoped<IUserService, UserService>();
 
         return services;
     }
