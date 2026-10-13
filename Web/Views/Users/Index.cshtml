@@ -1,0 +1,104 @@
+@model List<UserViewModel>
+@{
+    ViewData["Title"] = "Users";
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+
+<div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Users</h1>
+        <p class="text-muted mb-0">@Model.Count registered @(Model.Count == 1 ? "user" : "users").</p>
+    </div>
+    <button type="button" class="btn btn-dark" data-modal-url="@Url.Action("Create")">+ Add New User</button>
+</div>
+
+<div class="card data-card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover data-table mb-0">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Date of birth</th>
+                    <th scope="col">Role</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Registered</th>
+                    <th scope="col">Messages</th>
+                    <th scope="col" class="text-end col-actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    var isSelf = string.Equals(user.Id.ToString(), currentUserId, StringComparison.OrdinalIgnoreCase);
+                    <tr>
+                        <td><code class="small text-muted" title="@user.Id">@user.Id.ToString()[..8]</code></td>
+                        <td class="text-nowrap">
+                            @user.Email
+                            @if (isSelf)
+                            {
+                                <span class="badge bg-warning text-dark ms-1">You</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="fw-bold">@user.DisplayName</div>
+                            <div class="small text-muted">@user.FullName</div>
+                        </td>
+                        <td class="text-nowrap">@(user.DateOfBirth?.ToString("d MMM yyyy") ?? "—")</td>
+                        <td>
+                            @if (string.IsNullOrEmpty(user.Role))
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                            else
+                            {
+                                <span class="badge @(user.Role == AppRoles.Admin ? "bg-dark" : "bg-light text-dark border")">@user.Role</span>
+                            }
+                        </td>
+                        <td>
+                            @if (user.IsLockedOut)
+                            {
+                                <span class="badge bg-danger" title="@(AccountLockout.IsLockedByAdmin(user.LockoutEnd) ? "Locked by an admin" : $"Locked after failed logins until {user.LockoutEnd:u}")">Locked</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                        </td>
+                        <td class="text-nowrap">
+                            @if (user.RegisteredDateTime is { } registered)
+                            {
+                                <time datetime="@registered.ToString("o")" data-local-time="date">@registered.ToString("d MMM yyyy")</time>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td>@user.MessageCount</td>
+                        <td class="text-end text-nowrap col-actions">
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    data-modal-url="@Url.Action("Edit", new { id = user.Id })"
+                                    aria-label="Edit @user.Email">Edit</button>
+                            @if (!isSelf)
+                            {
+                                <form asp-action="@(user.IsLockedOut ? "Unlock" : "Lock")" asp-route-id="@user.Id" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm @(user.IsLockedOut ? "btn-outline-success" : "btn-outline-warning")"
+                                            aria-label="@(user.IsLockedOut ? "Unlock" : "Lock") @user.Email">@(user.IsLockedOut ? "Unlock" : "Lock")</button>
+                                </form>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        data-modal-url="@Url.Action("Delete", new { id = user.Id })"
+                                        aria-label="Delete @user.Email">Delete</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

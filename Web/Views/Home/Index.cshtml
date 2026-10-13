@@ -67,13 +67,14 @@
                     <h3 class="h5">Catalog management</h3>
                     <p class="text-muted">
                         Admins add and edit movies, actors and the cast of every movie,
-                        including character names and billing order.
+                        and manage registered users and their roles.
                     </p>
                     @if (isAdmin)
                     {
                         <div class="d-flex flex-wrap gap-2">
                             <a class="btn btn-dark" asp-controller="Actors" asp-action="Index">Actors</a>
                             <a class="btn btn-outline-dark" asp-controller="MovieActors" asp-action="Index">Cast &amp; Roles</a>
+                            <a class="btn btn-outline-dark" asp-controller="Users" asp-action="Index">Users</a>
                         </div>
                     }
                     else

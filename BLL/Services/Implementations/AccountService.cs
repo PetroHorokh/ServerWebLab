@@ -26,18 +26,14 @@ internal sealed class AccountService(
         var created = await userManager.CreateAsync(user, model.Password);
         if (!created.Succeeded)
         {
-            var duplicateEmail = created.Errors.Any(e => e.Code == nameof(IdentityErrorDescriber.DuplicateEmail));
-            return AccountResult.Failed(created.Errors
-                .Where(e => !(duplicateEmail && e.Code == nameof(IdentityErrorDescriber.DuplicateUserName)))
-                .Select(e => e.Description)
-                .ToArray());
+            return AccountResult.Failed(created.ErrorMessages());
         }
 
         var roleAdded = await userManager.AddToRoleAsync(user, AppRoles.Member);
         if (!roleAdded.Succeeded)
         {
             await userManager.DeleteAsync(user);
-            return AccountResult.Failed(roleAdded.Errors.Select(e => e.Description).ToArray());
+            return AccountResult.Failed(roleAdded.ErrorMessages());
         }
 
         await signInManager.SignInAsync(user, isPersistent: false);
@@ -54,9 +50,15 @@ internal sealed class AccountService(
             return AccountResult.Success();
         }
 
-        return result.IsLockedOut
-            ? AccountResult.LockedOut()
-            : AccountResult.Failed("Invalid email or password.");
+        if (!result.IsLockedOut)
+        {
+            return AccountResult.Failed("Invalid email or password.");
+        }
+
+        var user = await userManager.FindByEmailAsync(model.Email.Trim());
+        return user is not null && AccountLockout.IsLockedByAdmin(user.LockoutEnd)
+            ? AccountResult.Failed("This account has been locked by an administrator.")
+            : AccountResult.LockedOut();
     }
 
     public Task LogoutAsync() => signInManager.SignOutAsync();

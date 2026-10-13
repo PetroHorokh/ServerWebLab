@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using BLL.Common;
 using DAL.Constraints;
 
 namespace BLL.Models.Actions;
@@ -40,15 +41,6 @@ public class RegisterModel : IValidatableObject
     [Display(Name = "Confirm password")]
     public string ConfirmPassword { get; set; } = string.Empty;
 
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-    {
-        if (DateOfBirth > DateOnly.FromDateTime(DateTime.UtcNow))
-        {
-            yield return new ValidationResult("Date of birth cannot be in the future.", [nameof(DateOfBirth)]);
-        }
-        else if (DateOfBirth < new DateOnly(1900, 1, 1))
-        {
-            yield return new ValidationResult("Enter a date of birth after 1900.", [nameof(DateOfBirth)]);
-        }
-    }
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext) =>
+        DateOfBirthValidation.Validate(DateOfBirth, nameof(DateOfBirth));
 }
