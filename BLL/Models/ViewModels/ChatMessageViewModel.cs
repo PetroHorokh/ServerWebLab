@@ -10,6 +10,10 @@ public class ChatMessageViewModel
 
     public Guid MovieId { get; set; }
 
+    [StringLength(MovieConstraints.TitleMaxLength)]
+    [Display(Name = "Movie")]
+    public string MovieTitle { get; set; } = string.Empty;
+
     public Guid AuthorId { get; set; }
 
     [Required]
@@ -22,13 +26,17 @@ public class ChatMessageViewModel
     [Display(Name = "Role")]
     public string RoleTag { get; set; } = string.Empty;
 
-    [Required]
     [StringLength(ChatMessageConstraints.MessageMaxLength)]
     public string Message { get; set; } = string.Empty;
 
     [DataType(DataType.DateTime)]
     [Display(Name = "Posted")]
     public DateTime PostedDateTime { get; set; }
+
+    [Display(Name = "Private")]
+    public bool IsPrivate { get; set; }
+
+    public List<ChatAttachmentViewModel> Attachments { get; set; } = [];
 
     public bool IsAdmin => RoleTag == AppRoles.Admin;
 }

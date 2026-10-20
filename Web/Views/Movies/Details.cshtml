@@ -4,6 +4,7 @@
     var isAdmin = User.IsInRole(AppRoles.Admin);
     var canWrite = isAdmin || User.IsInRole(AppRoles.Member);
     var returnUrl = Context.Request.Path.Value;
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
     ViewData["Title"] = movie.Title;
 }
 
@@ -77,14 +78,20 @@
     </div>
 
     <div class="col-lg-7">
-        <section class="card chat-card shadow-sm" aria-labelledby="chat-title">
+        <section class="card chat-card shadow-sm" aria-labelledby="chat-title"
+                 data-chat="movie" data-movie-id="@movie.Id" data-hub-url="@ChatHub.Path"
+                 data-current-user-id="@currentUserId" data-can-delete="@(isAdmin ? "true" : "false")"
+                 data-chat-synced="@Model.ChatSyncedAt.ToString("o")"
+                 data-delete-url="@Url.Action("Delete", "Chat", new { id = "__id__" })"
+                 data-attachment-url="@Url.Action("Attachment", "Chat", new { id = "__id__" })"
+                 data-movie-url="@Url.Action("Details", "Movies", new { id = "__id__" })"
+                 data-max-files="@ChatAttachmentRules.MaxFilesPerMessage" data-max-file-size="@ChatAttachmentRules.MaxFileSizeBytes"
+                 data-max-file-size-text="@ChatAttachmentRules.MaxFileSizeText">
             <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
                 <h2 class="h5 mb-0" id="chat-title">Chat</h2>
-                <span class="small text-muted">New messages appear automatically</span>
+                <span class="chat-status small text-muted" role="status" data-chat-status>Connecting…</span>
             </div>
-            <div class="chat-messages" role="log" aria-labelledby="chat-title"
-                 data-chat-messages data-messages-url="@Url.Action("Messages", "Chat", new { movieId = movie.Id })"
-                 data-chat-synced="@Model.ChatSyncedAt.Ticks">
+            <div class="chat-messages" role="log" aria-labelledby="chat-title" data-chat-messages>
                 <p class="chat-empty text-muted @(Model.Messages.Count > 0 ? "d-none" : null)" data-chat-empty>
                     @(canWrite ? "No messages yet. Start the conversation!" : "No messages yet.")
                 </p>
@@ -93,17 +100,35 @@
             @if (canWrite)
             {
                 <form class="chat-form card-footer bg-white" asp-controller="Chat" asp-action="Send" asp-route-movieId="@movie.Id"
-                      method="post" data-chat-form>
+                      method="post" enctype="multipart/form-data" data-chat-form>
                     <label for="chat-input" class="visually-hidden">Message</label>
                     <div class="d-flex gap-2 align-items-end">
+                        <button type="button" class="btn btn-outline-secondary chat-attach-button" data-chat-attach
+                                title="Attach files: up to @ChatAttachmentRules.MaxFilesPerMessage, @ChatAttachmentRules.MaxFileSizeText each"
+                                aria-label="Attach files">
+                            <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true" focusable="false">
+                                <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3Z" />
+                            </svg>
+                        </button>
                         <textarea id="chat-input" name="Message" class="form-control" rows="2"
-                                  maxlength="@ChatMessageCreateModel.MaxLength" placeholder="Write a message…"></textarea>
+                                  maxlength="@ChatMessageCreateModel.MaxLength" placeholder="Write a message…"
+                                  data-public-placeholder="Write a message…"
+                                  data-private-placeholder="Write a private message to the admins…"></textarea>
                         <button type="submit" class="btn btn-dark">Send</button>
                     </div>
-                    <div class="d-flex flex-wrap justify-content-between gap-2 mt-1 small">
-                        <span class="text-danger" role="alert" data-chat-error></span>
+                    <input type="file" id="chat-files" name="Files" class="visually-hidden" multiple tabindex="-1"
+                           accept="@ChatAttachmentRules.AcceptAttribute" aria-label="Files to attach" data-chat-file-input />
+                    <ul class="chat-selected-files" aria-label="Files to send" data-chat-selected-files hidden></ul>
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2 small">
+                        <div class="form-check mb-0">
+                            <input class="form-check-input" type="checkbox" id="chat-private" name="IsPrivate" value="true" data-chat-private />
+                            <label class="form-check-label" for="chat-private">
+                                Private: only @(isAdmin ? "admins" : "you and the admins") will see it
+                            </label>
+                        </div>
                         <span class="text-muted">Enter to send &middot; Shift+Enter for a new line</span>
                     </div>
+                    <div class="small text-danger mt-1" role="alert" data-chat-error></div>
                 </form>
             }
             else
@@ -125,4 +150,6 @@
     {
         <partial name="_ValidationScriptsPartial" />
     }
+    <script src="~/lib/microsoft-signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/chat.js" asp-append-version="true"></script>
 }

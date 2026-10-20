@@ -5,6 +5,7 @@ public enum ServiceResultStatus
     Success,
     NotFound,
     Invalid,
+    Forbidden,
 }
 
 public sealed class ServiceResult
@@ -29,4 +30,6 @@ public sealed class ServiceResult
     public static ServiceResult NotFound() => NotFoundResult;
 
     public static ServiceResult Invalid(string error) => new(ServiceResultStatus.Invalid, error);
+
+    public static ServiceResult Forbidden(string error) => new(ServiceResultStatus.Forbidden, error);
 }

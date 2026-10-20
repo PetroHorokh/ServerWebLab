@@ -2,6 +2,8 @@ using BLL;
 using BLL.Common;
 using BLL.Identity;
 using BLL.Services.Interfaces;
+using Microsoft.AspNetCore.SignalR;
+using Web.Hubs;
 using Web.Services.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +20,11 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddBusinessLogic(connectionString, builder.Configuration["AutoMapper:LicenseKey"]);
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddSingleton<ICurrentUserService, HttpContextCurrentUserService>();
+builder.Services.AddScoped<HubCallerUser>();
+builder.Services.AddScoped<ICurrentUserService, HttpContextCurrentUserService>();
+
+builder.Services.AddSignalR(options => options.AddFilter<CurrentUserHubFilter>());
+builder.Services.AddSingleton<IChatNotifier, SignalRChatNotifier>();
 
 builder.Services.AddWebOptimizer(pipeline =>
 {
@@ -50,5 +56,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHub<ChatHub>(ChatHub.Path);
 
 app.Run();

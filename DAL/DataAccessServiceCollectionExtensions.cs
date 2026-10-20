@@ -15,6 +15,7 @@ public static class DataAccessServiceCollectionExtensions
         services.AddScoped<IMovieRepository, MovieRepository>();
         services.AddScoped<IMovieActorRepository, MovieActorRepository>();
         services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
+        services.AddScoped<IChatAttachmentRepository, ChatAttachmentRepository>();
         services.AddScoped<IUserIdentityRepository, UserIdentityRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
 

@@ -11,7 +11,7 @@ public class ChatMessage : AuditableEntity
 
     public Guid UserId { get; set; }
 
-    [Required]
+    [Required(AllowEmptyStrings = true)]
     [StringLength(ChatMessageConstraints.MessageMaxLength)]
     public string Message { get; set; } = string.Empty;
 
@@ -23,7 +23,11 @@ public class ChatMessage : AuditableEntity
 
     public bool IsDeleted { get; set; }
 
+    public bool IsPrivate { get; set; }
+
     public Movie Movie { get; set; } = null!;
 
     public ApplicationUser User { get; set; } = null!;
+
+    public ICollection<ChatAttachment> Attachments { get; set; } = new List<ChatAttachment>();
 }

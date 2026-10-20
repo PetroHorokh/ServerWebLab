@@ -1,0 +1,61 @@
+@model PrivateMessagesViewModel
+@{
+    ViewData["Title"] = "Private messages";
+    var selectedMovie = Model.Movies.FirstOrDefault(m => m.MovieId == Model.SelectedMovieId);
+    var allCount = Model.Movies.Sum(m => m.Count);
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var showMovie = new ViewDataDictionary(ViewData) { ["ShowMovie"] = true };
+}
+
+<div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Private messages</h1>
+        <p class="text-muted mb-0">Messages that only their sender and the admins can see, from every movie chat. Newest first.</p>
+    </div>
+    <form method="get" asp-action="Private" class="d-flex align-items-center gap-2" data-auto-submit>
+        <label for="movie-filter" class="form-label mb-0 text-nowrap">Movie</label>
+        <select id="movie-filter" name="movieId" class="form-select">
+            <option value="">All movies (@allCount)</option>
+            @foreach (var movie in Model.Movies)
+            {
+                <option value="@movie.MovieId" selected="@(movie.MovieId == Model.SelectedMovieId)">@movie.Title (@movie.Count)</option>
+            }
+        </select>
+        <noscript><button type="submit" class="btn btn-dark">Show</button></noscript>
+    </form>
+</div>
+
+<section class="card chat-card shadow-sm" aria-labelledby="inbox-title"
+         data-chat="inbox" data-movie-id="@Model.SelectedMovieId" data-hub-url="@ChatHub.Path"
+         data-current-user-id="@currentUserId" data-can-delete="true"
+         data-delete-url="@Url.Action("Delete", "Chat", new { id = "__id__" })"
+         data-attachment-url="@Url.Action("Attachment", "Chat", new { id = "__id__" })"
+         data-movie-url="@Url.Action("Details", "Movies", new { id = "__id__" })">
+    <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
+        <h2 class="h5 mb-0" id="inbox-title">
+            @(selectedMovie is null ? "All movies" : selectedMovie.Title)
+            @if (selectedMovie is not null)
+            {
+                <a class="small fw-normal ms-2" asp-controller="Movies" asp-action="Details" asp-route-id="@selectedMovie.MovieId">Open the movie page</a>
+            }
+        </h2>
+        <span class="chat-status small text-muted" role="status" data-chat-status>Connecting…</span>
+    </div>
+    <div class="chat-messages chat-inbox" role="log" aria-labelledby="inbox-title" data-chat-messages>
+        <p class="chat-empty text-muted @(Model.Messages.Count > 0 ? "d-none" : null)" data-chat-empty>
+            No private messages yet. When someone marks a message as private, it shows up here.
+        </p>
+        <partial name="_ChatMessages" model="Model.Messages" view-data="showMovie" />
+    </div>
+    @if (Model.TotalCount > Model.Messages.Count)
+    {
+        <div class="card-footer bg-white small text-muted">
+            Showing the latest @Model.Messages.Count of @Model.TotalCount private messages. Pick a movie to narrow the list.
+        </div>
+    }
+</section>
+
+@section Scripts {
+    <script src="~/lib/microsoft-signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/chat.js" asp-append-version="true"></script>
+}

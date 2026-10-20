@@ -4,6 +4,8 @@
   --cinema-accent: #f5b301;
   --cinema-page-bg: #f5f6fa;
   --cinema-border: #dee2e6;
+  --cinema-private: #5b4bc4;
+  --cinema-private-bg: #f3f0ff;
 }
 
 body {
@@ -393,6 +395,202 @@ body {
   gap: .5rem;
   padding-top: .85rem;
   padding-bottom: .85rem;
+}
+
+.chat-status {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.chat-status::before {
+  width: .5rem;
+  height: .5rem;
+  border-radius: 50%;
+  background-color: var(--bs-gray-400);
+  content: "";
+}
+
+.chat-status.is-live::before {
+  background-color: var(--bs-success);
+}
+
+.chat-status.is-reconnecting::before {
+  background-color: var(--bs-warning);
+}
+
+.chat-status.is-offline::before {
+  background-color: var(--bs-danger);
+}
+
+.chat-message.is-private {
+  border: 1px dashed var(--cinema-private);
+  background-color: var(--cinema-private-bg);
+}
+
+.chat-message.is-private.is-mine {
+  background-color: #fff4cc;
+}
+
+.chat-private-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  background-color: var(--cinema-private);
+  color: #fff;
+}
+
+.chat-private-badge::before {
+  width: .65rem;
+  height: .65rem;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3E%3Cpath d='M8 1a3 3 0 0 0-3 3v3H4.5A1.5 1.5 0 0 0 3 8.5v5A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 11.5 7H11V4a3 3 0 0 0-3-3Zm-2 6V4a2 2 0 1 1 4 0v3H6Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  content: "";
+}
+
+.chat-context {
+  margin-bottom: .25rem;
+  color: var(--bs-gray-600);
+  font-size: .8rem;
+}
+
+.chat-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: .5rem;
+}
+
+.chat-text + .chat-attachments,
+.chat-meta + .chat-attachments,
+.chat-context + .chat-attachments {
+  margin-top: .4rem;
+}
+
+.chat-image {
+  display: block;
+  max-width: min(100%, 16rem);
+  line-height: 0;
+}
+
+.chat-image img {
+  max-width: 100%;
+  max-height: 12rem;
+  border: 1px solid var(--bs-gray-200);
+  border-radius: .5rem;
+  object-fit: cover;
+}
+
+.chat-file {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  max-width: 100%;
+  padding: .35rem .65rem;
+  border: 1px solid var(--bs-gray-300);
+  border-radius: .5rem;
+  background-color: #fff;
+  color: inherit;
+  font-size: .85rem;
+  text-decoration: none;
+}
+
+.chat-file:hover,
+.chat-file:focus-visible {
+  background-color: var(--bs-gray-100);
+  color: inherit;
+}
+
+.chat-file::before {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236c757d'%3E%3Cpath d='M4 0h5.5L14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2Zm5 1.5V4a1 1 0 0 0 1 1h2.5L9 1.5ZM5 8.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5Zm0 2a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5Zm0 2a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1H5Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  content: "";
+}
+
+.chat-file-name {
+  overflow: hidden;
+  max-width: 14rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-file-size {
+  color: var(--bs-gray-600);
+  white-space: nowrap;
+}
+
+.chat-attach-button {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
+}
+
+.chat-form.is-private textarea {
+  border-color: var(--cinema-private);
+  background-color: var(--cinema-private-bg);
+  box-shadow: 0 0 0 .2rem rgba(91, 75, 196, .15);
+}
+
+.chat-form.is-dragging {
+  outline: 2px dashed var(--bs-gray-500);
+  outline-offset: -.5rem;
+}
+
+.chat-selected-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: .5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chat-selected-file {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  max-width: 100%;
+  padding: .25rem .4rem .25rem .5rem;
+  border: 1px solid var(--bs-gray-300);
+  border-radius: .5rem;
+  background-color: var(--bs-gray-100);
+  font-size: .8rem;
+}
+
+.chat-selected-file img {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: .25rem;
+  object-fit: cover;
+}
+
+.chat-selected-file-name {
+  overflow: hidden;
+  max-width: 12rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-selected-file-size {
+  color: var(--bs-gray-600);
+  white-space: nowrap;
+}
+
+.chat-selected-file .btn-close {
+  padding: .25rem;
+  font-size: .55rem;
+}
+
+.chat-messages.chat-inbox {
+  height: auto;
+  min-height: 12rem;
+}
+
+.chat-inbox .chat-message {
+  align-self: stretch;
+  max-width: none;
 }
 
 .password-field {

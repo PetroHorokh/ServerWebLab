@@ -388,176 +388,12 @@
         });
     }
 
-    function initChat() {
-        const list = document.querySelector('[data-chat-messages]');
-        const form = document.querySelector('[data-chat-form]');
-        if (!list) {
-            return;
-        }
-
-        const messagesUrl = list.getAttribute('data-messages-url');
-        const input = form ? form.querySelector('textarea') : null;
-        const sendButton = form ? form.querySelector('[type=submit]') : null;
-        const errorElement = form ? form.querySelector('[data-chat-error]') : null;
-        const emptyElement = list.querySelector('[data-chat-empty]');
-        const pollIntervalMs = 4000;
-        let syncedTicks = list.getAttribute('data-chat-synced');
-        let polling = false;
-        let closed = false;
-
-        function showError(message) {
-            if (errorElement) {
-                errorElement.textContent = message || '';
-            }
-        }
-
-        function lastMessageId() {
-            const messages = list.querySelectorAll('[data-message-id]');
-            return messages.length ? messages[messages.length - 1].getAttribute('data-message-id') : null;
-        }
-
-        function isNearBottom() {
-            return list.scrollHeight - list.scrollTop - list.clientHeight < 80;
-        }
-
-        function scrollToBottom() {
-            list.scrollTop = list.scrollHeight;
-        }
-
-        function appendMessages(html, forceScroll) {
-            const stickToBottom = forceScroll || isNearBottom();
-            const template = document.createElement('template');
-            template.innerHTML = html;
-
-            let added = 0;
-            template.content.querySelectorAll('[data-message-id]').forEach(function (message) {
-                const id = message.getAttribute('data-message-id');
-                if (!list.querySelector('[data-message-id="' + id + '"]')) {
-                    localizeTimes(message);
-                    list.appendChild(message);
-                    added++;
-                }
+    function initAutoSubmitForms() {
+        document.querySelectorAll('form[data-auto-submit] select').forEach(function (select) {
+            select.addEventListener('change', function () {
+                select.form.requestSubmit();
             });
-
-            if (added > 0) {
-                emptyElement.classList.add('d-none');
-                if (stickToBottom) {
-                    scrollToBottom();
-                }
-            }
-        }
-
-        function removeMessages(idList) {
-            idList.split(',').filter(Boolean).forEach(function (id) {
-                const message = list.querySelector('[data-message-id="' + id + '"]');
-                if (message) {
-                    message.remove();
-                }
-            });
-
-            emptyElement.classList.toggle('d-none', list.querySelector('[data-message-id]') !== null);
-        }
-
-        function close(message) {
-            closed = true;
-            if (form) {
-                input.disabled = true;
-                sendButton.disabled = true;
-            }
-
-            showError(message);
-        }
-
-        async function poll() {
-            if (polling || closed || document.hidden) {
-                return;
-            }
-
-            polling = true;
-            try {
-                const url = new URL(messagesUrl, window.location.origin);
-                const lastId = lastMessageId();
-                if (lastId) {
-                    url.searchParams.set('afterId', lastId);
-                }
-
-                if (syncedTicks) {
-                    url.searchParams.set('since', syncedTicks);
-                }
-
-                const response = await fetch(url, { headers: ajaxHeaders });
-                if (isAuthFailure(response)) {
-                    close(sessionEndedMessage);
-                } else if (response.ok) {
-                    removeMessages(response.headers.get('X-Chat-Removed') || '');
-                    appendMessages(await response.text(), false);
-                    syncedTicks = response.headers.get('X-Chat-Synced') || syncedTicks;
-                }
-            } catch {
-            } finally {
-                polling = false;
-            }
-        }
-
-        async function send() {
-            if (closed) {
-                return;
-            }
-
-            if (!input.value.trim()) {
-                showError('Write a message first.');
-                input.focus();
-                return;
-            }
-
-            sendButton.disabled = true;
-            showError('');
-            try {
-                const response = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: ajaxHeaders });
-                if (response.ok) {
-                    appendMessages(await response.text(), true);
-                    input.value = '';
-                    input.focus();
-                } else if (isAuthFailure(response)) {
-                    close(sessionEndedMessage);
-                } else if (response.status === 404) {
-                    close('This movie no longer exists, so its chat is closed.');
-                } else if (response.status === 400) {
-                    showError((await response.text()) || 'The message could not be sent. Reload the page and try again.');
-                } else {
-                    showError('The message could not be sent (HTTP ' + response.status + '). Please try again.');
-                }
-            } catch {
-                showError(offlineMessage);
-            } finally {
-                if (!closed) {
-                    sendButton.disabled = false;
-                }
-            }
-        }
-
-        if (form) {
-            form.addEventListener('submit', function (event) {
-                event.preventDefault();
-                send();
-            });
-
-            input.addEventListener('keydown', function (event) {
-                if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
-                    event.preventDefault();
-                    send();
-                }
-            });
-        }
-
-        document.addEventListener('visibilitychange', function () {
-            if (!document.hidden) {
-                poll();
-            }
         });
-
-        scrollToBottom();
-        window.setInterval(poll, pollIntervalMs);
     }
 
     function initPasswordToggles(root) {
@@ -593,8 +429,16 @@
         });
     }
 
+    window.cinema = {
+        ajaxHeaders: ajaxHeaders,
+        isAuthFailure: isAuthFailure,
+        sessionEndedMessage: sessionEndedMessage,
+        offlineMessage: offlineMessage,
+        localizeTimes: localizeTimes,
+    };
+
     localizeTimes(document);
     initModals();
-    initChat();
+    initAutoSubmitForms();
     initPasswordToggles(document);
 })();
