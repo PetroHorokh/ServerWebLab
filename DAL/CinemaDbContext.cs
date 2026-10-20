@@ -17,6 +17,8 @@ public class CinemaDbContext(DbContextOptions<CinemaDbContext> options)
 
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
+    public DbSet<ChatAttachment> ChatAttachments => Set<ChatAttachment>();
+
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         ValidateChangedEntities();

@@ -134,6 +134,62 @@ namespace DAL
                     b.ToTable("User", (string)null);
                 });
 
+            modelBuilder.Entity("DAL.Entities.ChatAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChatMessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid?>("ModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ModifiedDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SizeBytes")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatMessageId");
+
+                    b.ToTable("ChatAttachments", (string)null);
+                });
+
+            modelBuilder.Entity("DAL.Entities.ChatAttachmentData", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("Content")
+                        .IsRequired()
+                        .HasMaxLength(5242880)
+                        .HasColumnType("varbinary(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ChatAttachments", (string)null);
+                });
+
             modelBuilder.Entity("DAL.Entities.ChatMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -147,6 +203,9 @@ namespace DAL
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPrivate")
                         .HasColumnType("bit");
 
                     b.Property<string>("Message")
@@ -451,6 +510,26 @@ namespace DAL
                     b.ToTable("UserToken", (string)null);
                 });
 
+            modelBuilder.Entity("DAL.Entities.ChatAttachment", b =>
+                {
+                    b.HasOne("DAL.Entities.ChatMessage", "ChatMessage")
+                        .WithMany("Attachments")
+                        .HasForeignKey("ChatMessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChatMessage");
+                });
+
+            modelBuilder.Entity("DAL.Entities.ChatAttachmentData", b =>
+                {
+                    b.HasOne("DAL.Entities.ChatAttachment", null)
+                        .WithOne("Data")
+                        .HasForeignKey("DAL.Entities.ChatAttachmentData", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("DAL.Entities.ChatMessage", b =>
                 {
                     b.HasOne("DAL.Entities.Movie", "Movie")
@@ -561,6 +640,17 @@ namespace DAL
                     b.Navigation("ChatMessages");
 
                     b.Navigation("UserIdentity");
+                });
+
+            modelBuilder.Entity("DAL.Entities.ChatAttachment", b =>
+                {
+                    b.Navigation("Data")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DAL.Entities.ChatMessage", b =>
+                {
+                    b.Navigation("Attachments");
                 });
 
             modelBuilder.Entity("DAL.Entities.Movie", b =>

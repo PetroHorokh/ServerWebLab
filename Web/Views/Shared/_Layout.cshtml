@@ -60,6 +60,10 @@
                                 <a class="@NavButtonClass(IsCurrent("Users"))" aria-current="@(IsCurrent("Users") ? "page" : null)"
                                    asp-controller="Users" asp-action="Index">Users</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="@NavButtonClass(IsCurrent("Chat", "Private"))" aria-current="@(IsCurrent("Chat", "Private") ? "page" : null)"
+                                   asp-controller="Chat" asp-action="Private">Inbox</a>
+                            </li>
                         }
                     </ul>
                     <div class="app-account">

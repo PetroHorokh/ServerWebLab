@@ -2,14 +2,19 @@
 @{
     var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
     var canDelete = User.IsInRole(AppRoles.Admin);
+    var showMovie = ViewData["ShowMovie"] is true;
 }
 @foreach (var message in Model)
 {
     var isMine = string.Equals(message.AuthorId.ToString(), currentUserId, StringComparison.OrdinalIgnoreCase);
-    <article class="chat-message @(isMine ? "is-mine" : null)" data-message-id="@message.Id">
+    <article class="chat-message @(isMine ? "is-mine" : null) @(message.IsPrivate ? "is-private" : null)" data-message-id="@message.Id">
         <header class="chat-meta">
             <span class="chat-author">@message.AuthorName</span>
             <span class="badge @(message.IsAdmin ? "bg-dark" : "bg-light text-dark border")">@message.RoleTag</span>
+            @if (message.IsPrivate)
+            {
+                <span class="badge chat-private-badge" title="Only the sender and admins can see this message">Private</span>
+            }
             <time class="chat-time" datetime="@message.PostedDateTime.ToString("o")" data-local-time>@message.PostedDateTime.ToString("d MMM yyyy, HH:mm") UTC</time>
             @if (canDelete)
             {
@@ -17,6 +22,35 @@
                         aria-label="Delete the message from @message.AuthorName">Delete</button>
             }
         </header>
-        <p class="chat-text">@message.Message</p>
+        @if (showMovie)
+        {
+            <div class="chat-context">in <a asp-controller="Movies" asp-action="Details" asp-route-id="@message.MovieId">@message.MovieTitle</a></div>
+        }
+        @if (message.Message.Length > 0)
+        {
+            <p class="chat-text">@message.Message</p>
+        }
+        @if (message.Attachments.Count > 0)
+        {
+            <div class="chat-attachments">
+                @foreach (var attachment in message.Attachments)
+                {
+                    var url = Url.Action("Attachment", "Chat", new { id = attachment.Id });
+                    if (attachment.IsImage)
+                    {
+                        <a class="chat-image" href="@url" target="_blank" rel="noopener" title="@attachment.FileName (@attachment.SizeText)">
+                            <img src="@url" alt="@attachment.FileName" loading="lazy" />
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="chat-file" href="@url" download="@attachment.FileName">
+                            <span class="chat-file-name">@attachment.FileName</span>
+                            <span class="chat-file-size">@attachment.SizeText</span>
+                        </a>
+                    }
+                }
+            </div>
+        }
     </article>
 }
